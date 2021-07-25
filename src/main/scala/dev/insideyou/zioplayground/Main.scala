@@ -1,4 +1,4 @@
-  package dev.insideyou
+package dev.insideyou
 package zioplayground
 
 import zio.*
@@ -19,15 +19,41 @@ object IO:
     IO(() => a)
 
 */
-object Main extends App:
+
+// exitCode method just checks if arrow was produced
+// All zio applications are descriptions of applications which need Runtime to evaluate this description
+// zio provides Runtime.default
+// debug and repeadN run asynchronousely
+object MainZio extends App:
+  val trace = s"[${Console.BLUE}]TRACE${Console.RESET}"
   val program =
     for
       _ <- console.putStrLn("─" * 100)
 
-      _ <- console.putStrLn("hello world")
-
+      _ <- console.putStrLn("hello zio world").debug(trace)
+      _ <- console.putStrLn("What is your name?").debug(trace)
+      name <- ZIO.succeed("Vlad").debug(trace)
+      _<- console.putStrLn(s"Hello $name").debug(trace)
       _ <- console.putStrLn("─" * 100)
     yield ()
+  
   override def run(args: List[String]) =
     program.exitCode
+ 
+object Main extends scala.App:
+  val program =
+    for
+      _ <- console.putStrLn("─" * 100)
 
+      //_ <- console.putStrLn("hello world with scala + zio").repeatN(2)
+      _ <- console.putStrLn("What is your name?")
+      name <- console.getStrLn
+      _ <- console.putStrLn(s"Hello $name")
+      _ <- console.putStrLn("─" * 100)
+    yield ()
+  // there is a threadpool that runs this program
+  Runtime.default.unsafeRunSync(program)
+  // each subprogram can be repeatedly run as shown in hello expression
+  //Runtime.default.unsafeRunToFuture(program.repeatN(1))
+  // there is some issue with unsafeRunToFuture it runs multiple times even though repeatN has 1
+  
